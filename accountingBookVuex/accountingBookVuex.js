@@ -195,21 +195,21 @@ let listDisplay = {
         <div class="card main-card">
             <ul class="list-group">
                 <li v-for="event in getData" :key="event.timestrip" class="lists-group-item flex-container py-1">
-                    <h3 class="lists-group-item-heading" :style = "{'color': event.exesType !== '' ? '#C0392B': '#145A32'}">
+                    <h3 class="lists-group-item-heading px-1" :style = "{'color': event.exesType !== '' ? '#C0392B': '#145A32'}">
                         <i class="bi bi-currency-dollar"></i> 
                         {{ event.amount }}
                     </h3>
-                    <h5>
+                    <h5 class = 'px-2'>
                         <i class="bi bi-calendar-heart"></i> 
                         {{ event.dateInput }}
                     </h5>
-                    <h5 v-show = "event.moneyTypeInput == '0'">
+                    <h5 class = 'px-2' v-show = "event.moneyTypeInput == '0'">
                         <i class="bi bi-card-text"></i>
                         <span v-show = "event.incomeType == '0'">薪水</span>
                         <span v-show = "event.incomeType == '1'">投資</span>
                         <span v-show = "event.incomeType == '2'">其他</span>
                     </h5>
-                    <h5 v-show = "event.moneyTypeInput == '1'">
+                    <h5 class = 'px-2' v-show = "event.moneyTypeInput == '1'">
                         <i class="bi bi-card-text"></i>
                         <span v-show = "event.exesType == '0'">伙食費</span>
                         <span v-show = "event.exesType == '1'">交通費</span>
@@ -218,8 +218,8 @@ let listDisplay = {
                         <span v-show = "event.exesType == '4'">電話費</span>
                         <span v-show = "event.exesType == '5'">其他</span>
                     </h5>
-                    <button class="btn btn-xs btn-warning" @click="modalTypeHandler(2,event)"  data-bs-toggle="modal" data-bs-target="#staticBackdrop" >修改</button>
-                    <button class="btn btn-xs btn-danger" @click="modalTypeHandler(3,event)"  data-bs-toggle="modal" data-bs-target="#staticBackdrop">刪除</button>
+                    <button class="btn btn-xs btn-warning mx-2" @click="modalTypeHandler(2,event)"  data-bs-toggle="modal" data-bs-target="#staticBackdrop" >修改</button>
+                    <button class="btn btn-xs btn-danger mx-2" @click="modalTypeHandler(3,event)"  data-bs-toggle="modal" data-bs-target="#staticBackdrop">刪除</button>
                 </li>
             </ul>
         </div>
@@ -264,19 +264,17 @@ const Chart = {
     },
     template : `
 	<div class="col-sm-12 pt-3">
-        <div id='chartChange' class="btn-toolbar justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
-            <div class="btn-group" role="group" aria-label="First group">
+        <div class="btn-toolbar justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="btn-group pe-1 " role="group" aria-label="First group">
                 <button type="button" class="btn btn-outline-secondary" @click="chartType = 1">收支總表</button>
             </div>
-            <div class="input-group">
+            <div class="btn-group pe-1">
                 <button type="button" class="btn btn-outline-secondary" @click="chartType = 2">收入分類總表</button>
             </div>
-            <div class="input-group">
+            <div class="btn-group pe-1">
                 <button type="button" class="btn btn-outline-secondary" @click="chartType = 3">支出分類總表</button>
             </div>
         </div>
-        
-        
 		<pie-chart  v-show = "!noData && chartType != 0"  :charttype = "chartType" :options="{responsive: true, maintainAspectRatio: false}" ></pie-chart>
 		<div v-show = "noData" class="text-center pt-2">沒有資料</div>
 	</div>`,
