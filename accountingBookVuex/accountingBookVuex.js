@@ -194,22 +194,22 @@ let listDisplay = {
         </button>
         <div class="card main-card">
             <ul class="list-group">
-                <li v-for="event in getData" :key="event.timestrip" class="lists-group-item flex-container py-1 pe-1">
-                    <h3 class="lists-group-item-heading px-1" :style = "{'color': event.exesType !== '' ? '#C0392B': '#145A32'}">
+                <li v-for="event in getData" :key="event.timestrip" class="lists-group-item flex-container py-1">
+                    <h3 class="lists-group-item-heading" :style = "{'color': event.exesType !== '' ? '#C0392B': '#145A32'}">
                         <i class="bi bi-currency-dollar"></i> 
                         {{ event.amount }}
                     </h3>
-                    <h5 class = 'px-2'>
+                    <h5>
                         <i class="bi bi-calendar-heart"></i> 
                         {{ event.dateInput }}
                     </h5>
-                    <h5 class = 'px-2' v-show = "event.moneyTypeInput == '0'">
+                    <h5 v-show = "event.moneyTypeInput == '0'">
                         <i class="bi bi-card-text"></i>
                         <span v-show = "event.incomeType == '0'">薪水</span>
                         <span v-show = "event.incomeType == '1'">投資</span>
                         <span v-show = "event.incomeType == '2'">其他</span>
                     </h5>
-                    <h5 class = 'px-2' v-show = "event.moneyTypeInput == '1'">
+                    <h5 v-show = "event.moneyTypeInput == '1'">
                         <i class="bi bi-card-text"></i>
                         <span v-show = "event.exesType == '0'">伙食費</span>
                         <span v-show = "event.exesType == '1'">交通費</span>
@@ -218,8 +218,8 @@ let listDisplay = {
                         <span v-show = "event.exesType == '4'">電話費</span>
                         <span v-show = "event.exesType == '5'">其他</span>
                     </h5>
-                    <button class="btn btn-xs btn-warning mx-2" @click="modalTypeHandler(2,event)"  data-bs-toggle="modal" data-bs-target="#staticBackdrop" >修改</button>
-                    <button class="btn btn-xs btn-danger mx-2" @click="modalTypeHandler(3,event)"  data-bs-toggle="modal" data-bs-target="#staticBackdrop">刪除</button>
+                    <button class="btn btn-xs btn-warning" @click="modalTypeHandler(2,event)"  data-bs-toggle="modal" data-bs-target="#staticBackdrop" >修改</button>
+                    <button class="btn btn-xs btn-danger" @click="modalTypeHandler(3,event)"  data-bs-toggle="modal" data-bs-target="#staticBackdrop">刪除</button>
                 </li>
             </ul>
         </div>
@@ -259,57 +259,86 @@ const Chart = {
             shareState : store.state,
             noData:false,
             //報表種類 0 1:總計 2:收入分類加總 3:支出分類加總
-            chartType : 1,
-            labelList : [],
-            setData:[],
+            chartType : 3,
         }
     },
     template : `
 	<div class="col-sm-12 pt-3">
-        <div class="btn-toolbar justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
-            <div class="btn-group pe-1 " role="group" aria-label="First group">
+        <div id='chartChange' class="btn-toolbar justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="btn-group" role="group" aria-label="First group">
                 <button type="button" class="btn btn-outline-secondary" @click="chartType = 1">收支總表</button>
             </div>
-            <div class="btn-group pe-1">
+            <div class="input-group">
                 <button type="button" class="btn btn-outline-secondary" @click="chartType = 2">收入分類總表</button>
             </div>
-            <div class="btn-group pe-1">
+            <div class="input-group">
                 <button type="button" class="btn btn-outline-secondary" @click="chartType = 3">支出分類總表</button>
             </div>
         </div>
-		<pie-chart  v-show = "!noData && chartType != 0" :chartData = "{'labelList':labelList,'setData':setData}"  :options="{responsive: true, maintainAspectRatio: false}" ></pie-chart>
+        
+        
+		<pie-chart  v-show = "!noData && chartType != 0"  :charttype = "chartType" :options="{responsive: true, maintainAspectRatio: false}" ></pie-chart>
 		<div v-show = "noData" class="text-center pt-2">沒有資料</div>
 	</div>`,
     mounted(){
         const result = this.shareState.lists.filter(value => value.flag === 0)
-        console.log(result)
         result.length === 0 ? this.noData = true : this.noData = false
+    },
+    methods:{
+        /* changeHandler(value){
+            console.log(value)
+            this.noData = value
+        } */
+    }
+}
+//圖表顯示(pie)
+Vue.component("pie-chart", {
+    extends: VueChartJs.Pie,
+    props: ["charttype", "options"],
+    data(){
+        return {
+            labelList : [],
+            setData:[],
+            shareState:store.state,
+            noData:false
+        }
+    },
+    mounted() {
+        //讀取State
+        this.loadState()
         this.changeData()
         
     },
-    methods:{
+    methods: {
+        loadState() {
+            if (localStorage.getItem('lists')) {
+                this.$store.commit('loadJSON', localStorage.getItem('lists'));  
+            }
+        },
         changeData(){
-             //重置
+            //重置
             this.labelList = []
             this.setData = []
-            switch (this.chartType) {
-                case 0:
-                    this.noData = true
-                    //this._chart.destroy();
-                    break;
+            this.noData = false
+            //取 store 值
+            let shareState = this.$store.state
+            console.log(shareState.lists)
+            switch(this.charttype){
                 case 1:
                     //標籤名稱
                     this.labelList = ["收入","支出"]
                     let income = 0
                     let expenditure = 0
-                    this.shareState.lists.filter((value)=>{
+                    shareState.lists.filter((value)=>{
                         if(value.flag == 0 && value.moneyTypeInput == 0){
                             income += parseInt(value.amount)
                         }else if(value.flag == 0 && value.moneyTypeInput == 1){
                             expenditure += parseInt(value.amount)
                         }
                     })
-                    income === 0 && expenditure === 0 ? this.noData = true  : this.noData = false
+                    if(income === 0 && expenditure === 0){
+                        this.noData = true
+                    } 
                     this.setData = [{
                         //顏色
                         backgroundColor:[
@@ -318,15 +347,15 @@ const Chart = {
                         ],
                         data:[income,expenditure]
                     }]
-                    
                     break;
                 case 2:
                     //過濾收入
-                    const incomeArray = this.shareState.lists.filter((element)=>{
+                    const incomeArray = shareState.lists.filter((element)=>{
                         return element.flag === 0 && element.moneyTypeInput == 0
                     })
-                    
-                    incomeArray.length === 0 ? this.noData = true : this.noData = false
+                    if(incomeArray.length === 0){
+                        this.noData = true
+                    } 
                     const incomeSortArray = incomeArray.reduce((acc, cur, i) => {
                         const item = i > 0 && acc.find(element => element.type == cur.incomeType)
                         if(item){
@@ -368,16 +397,18 @@ const Chart = {
                             value.data.push(element.value)
                         })
                     })
-                    
-                    
                     break;
                 case 3:
                     console.log("支出")
                     //過濾Flag 與支出
-                    const expenditureArray = this.shareState.lists.filter((element)=>{
+                    const expenditureArray = shareState.lists.filter((element)=>{
                         return element.flag === 0 && element.moneyTypeInput === 1
                     })
-                    expenditureArray.length === 0 ? this.noData = true : this.noData = false
+                    if(expenditureArray.length === 0){
+                        this.noData = true
+                    }else{
+                        this.noData = false
+                    } 
                     const expenditureSortArray = expenditureArray.reduce((acc, cur, i) => {
                         const item = i > 0 && acc.find(element => element.type == cur.exesType)
                         if(item){
@@ -428,47 +459,35 @@ const Chart = {
                             value.data.push(element.value)
                         })
                     })
-                    
                     break; 
+                    
             }
-        }
-    },
-    watch:{
-        chartType:function(){
-			//this.renderChart(this.data, this.options);
-			this.changeData();
+            /* console.log([].concat(...this.labelList)) */
+            this.renderLineChart();
         },
-    }
-}
-//圖表顯示(pie)
-Vue.component("pie-chart", {
-    extends: VueChartJs.Pie,
-    props: ["chartData", "options"],
-    data(){
-        return {
-            labelList : [],
-            setData : []
-        }
-    },
-    methods: {
+    
 		renderLineChart: function() {
             this.renderChart(
             {
-                labels: this.chartData.labelList,
-                datasets: this.chartData.setData
+                labels: this.labelList,
+                datasets: this.setData
             },
             { responsive: true, maintainAspectRatio: false }
 		);      
 		}
     },
 	watch: {
-        chartData:function(value)
-        {
-            
-            if(value.labelList.length > 0){
-                this.renderLineChart();
-            }
-        }
+        charttype:function(){
+            this._chart.destroy();
+			//this.renderChart(this.data, this.options);
+			this.changeData();
+        },
+       /*  noData:function(){
+            this.$emit('noData',this.noData)
+            this._chart.destroy();
+            this.changeData();
+            console.log("已發")
+        } */
 	},
     computed:{
         
